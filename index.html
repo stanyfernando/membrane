@@ -21,7 +21,6 @@
             overflow: hidden;
         }
 
-        /* Static overlay effect */
         body::before {
             content: '';
             position: fixed;
@@ -48,7 +47,6 @@
             flex-direction: column;
         }
 
-        /* Help Button */
         .help-button {
             position: fixed;
             top: 15px;
@@ -70,7 +68,6 @@
             border-color: #666;
         }
 
-        /* Modal */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -132,7 +129,6 @@
             background: #2a2a2a;
         }
 
-        /* Character Creation */
         .char-creation {
             display: flex;
             flex-direction: column;
@@ -151,8 +147,15 @@
 
         .char-creation .tagline {
             color: #666;
-            margin-bottom: 40px;
+            margin-bottom: 10px;
             font-size: 14px;
+        }
+
+        .char-creation .note {
+            color: #666;
+            font-size: 11px;
+            margin-bottom: 40px;
+            font-style: italic;
         }
 
         .name-input {
@@ -267,7 +270,6 @@
             cursor: not-allowed;
         }
 
-        /* Game Screen */
         .game-screen {
             display: flex;
             height: 100vh;
@@ -306,7 +308,6 @@
             letter-spacing: 2px;
         }
 
-        /* Character Sheet */
         .char-name {
             color: #888;
             font-size: 18px;
@@ -334,7 +335,6 @@
             font-size: 16px;
         }
 
-        /* Sanity Bar */
         .sanity-section {
             margin-top: 20px;
             padding-top: 20px;
@@ -400,7 +400,6 @@
             color: #888;
         }
 
-        /* Companion Section */
         .companion-section {
             margin-top: 20px;
             padding-top: 20px;
@@ -417,13 +416,6 @@
             margin-bottom: 5px;
         }
 
-        .companion-stats {
-            font-size: 11px;
-            color: #666;
-            margin-top: 5px;
-        }
-
-        /* Story Log */
         .story-log {
             flex: 1;
             background: #0a0a0a;
@@ -467,7 +459,6 @@
             background: #110800;
         }
 
-        /* Input Area */
         .input-area {
             background: #0a0a0a;
             border: 1px solid #333;
@@ -520,7 +511,6 @@
             cursor: not-allowed;
         }
 
-        /* Inventory */
         .inventory-list {
             list-style: none;
         }
@@ -543,7 +533,6 @@
             color: #4a9eff;
         }
 
-        /* Progress Tracker */
         .progress-section {
             margin-top: 20px;
             padding-top: 20px;
@@ -555,7 +544,6 @@
             color: #666;
         }
 
-        /* Dice Animation */
         .dice-overlay {
             position: fixed;
             top: 0;
@@ -614,21 +602,15 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
-        // Archetype data
         const ARCHETYPES = {
             touched: {
                 name: "The Touched",
                 occupation: "Cult member who succeeded in making contact",
                 startingSanity: 40,
-                stats: {
-                    KNOWLEDGE: 14,
-                    PERCEPTION: 8,
-                    MORALITY: 7,
-                    ENDURANCE: 15
-                },
+                stats: { KNOWLEDGE: 14, PERCEPTION: 8, MORALITY: 7, ENDURANCE: 15 },
                 items: ["Strange journal", "Occult symbols reference", "Worn tarot deck"],
-                strengths: "High KNOWLEDGE and ENDURANCE, glimpsed beyond",
-                weaknesses: "Low starting sanity, damaged PERCEPTION and MORALITY",
+                strengths: "High KNOWLEDGE and ENDURANCE",
+                weaknesses: "Low starting sanity, damaged PERCEPTION",
                 vibe: "You've glimpsed what lies beyond",
                 warning: "⚠ Starts at 40/50 sanity - Hardest path"
             },
@@ -636,12 +618,7 @@
                 name: "The Witness",
                 occupation: "Journalist, investigator, documentarian",
                 startingSanity: 50,
-                stats: {
-                    KNOWLEDGE: 11,
-                    PERCEPTION: 15,
-                    MORALITY: 10,
-                    ENDURANCE: 8
-                },
+                stats: { KNOWLEDGE: 11, PERCEPTION: 15, MORALITY: 10, ENDURANCE: 8 },
                 items: ["Camera", "Voice recorder", "Press credentials"],
                 strengths: "Exceptional PERCEPTION for finding clues",
                 weaknesses: "Low ENDURANCE, sanity drains faster",
@@ -651,35 +628,24 @@
                 name: "The Scientist",
                 occupation: "Physicist researching exotic particles",
                 startingSanity: 50,
-                stats: {
-                    KNOWLEDGE: 15,
-                    PERCEPTION: 11,
-                    MORALITY: 8,
-                    ENDURANCE: 10
-                },
+                stats: { KNOWLEDGE: 15, PERCEPTION: 11, MORALITY: 8, ENDURANCE: 10 },
                 items: ["Tablet computer", "Lab access card", "Scientific calculator"],
-                strengths: "Highest KNOWLEDGE for understanding cosmic truths",
-                weaknesses: "Low MORALITY, struggle with human connections",
+                strengths: "Highest KNOWLEDGE for cosmic truths",
+                weaknesses: "Low MORALITY, struggle with connections",
                 vibe: "Logic fails where reality bends"
             },
             survivor: {
                 name: "The Survivor",
                 occupation: "Long-haul trucker, ex-military",
                 startingSanity: 50,
-                stats: {
-                    KNOWLEDGE: 8,
-                    PERCEPTION: 11,
-                    MORALITY: 14,
-                    ENDURANCE: 15
-                },
+                stats: { KNOWLEDGE: 8, PERCEPTION: 11, MORALITY: 14, ENDURANCE: 15 },
                 items: ["Multi-tool", "Flashlight", "Cigarettes and lighter"],
-                strengths: "High MORALITY and ENDURANCE, emotional resilience",
-                weaknesses: "Low KNOWLEDGE, slower to understand cosmic horror",
+                strengths: "High MORALITY and ENDURANCE",
+                weaknesses: "Low KNOWLEDGE, slower to understand",
                 vibe: "You endure what others cannot"
             }
         };
 
-        // Help Modal Component
         function HelpModal({ onClose }) {
             useEffect(() => {
                 const handleEscape = (e) => {
@@ -695,79 +661,39 @@
                         <h2>MEMBRANE - HELP & ABOUT</h2>
                         
                         <h3>THE STORY</h3>
-                        <p>You exist in a world where something is fundamentally wrong. The Membrane - a barrier between our universe and the precursor universe that existed before the Big Bang - is wearing thin. Based on theoretical physics and dimensional theory, not magic or fantasy.</p>
-                        <p>Your goal isn't escape. It's survival. How long can you maintain your sanity while uncovering the truth? Every playthrough is unique, procedurally generated cosmic horror that adapts to your choices.</p>
+                        <p>The Membrane - barrier between our universe and the precursor universe - is wearing thin. Your goal isn't escape. It's survival. How long can you maintain your sanity while uncovering the truth?</p>
                         
                         <h3>HOW TO PLAY</h3>
-                        <p><strong>Free Text Input:</strong> Type anything you want to do. No multiple choice. No limits. This is true D&D-style gameplay.</p>
-                        <p><strong>Ask Questions:</strong> You can ask clarifying questions at any time (Where am I? What do I see? Can you describe this?) without penalty. The GM will provide more detail.</p>
-                        <p><strong>Take Actions:</strong> When you DO something (investigate, touch, go somewhere), that's an action with consequences.</p>
+                        <p><strong>Free Text:</strong> Type anything you want to do.</p>
+                        <p><strong>Questions:</strong> Ask (where am I? what do I see?) without penalty.</p>
+                        <p><strong>Actions:</strong> When you DO something, that costs sanity.</p>
                         
                         <h3>THE STATS</h3>
                         <ul>
-                            <li><strong>KNOWLEDGE:</strong> Understanding the cosmic, deciphering symbols, studying patterns. Used for comprehending the incomprehensible.</li>
-                            <li><strong>PERCEPTION:</strong> Finding clues, noticing wrongness, discovering hidden things. Used for awareness and observation.</li>
-                            <li><strong>MORALITY:</strong> Empathy, human connection, ethical choices. Used for companion dialogues and maintaining humanity.</li>
-                            <li><strong>ENDURANCE:</strong> Resisting sanity loss, tolerating madness. Used for withstanding cosmic horror.</li>
+                            <li><strong>KNOWLEDGE:</strong> Understanding cosmic patterns</li>
+                            <li><strong>PERCEPTION:</strong> Finding clues, noticing wrongness</li>
+                            <li><strong>MORALITY:</strong> Empathy, human connection</li>
+                            <li><strong>ENDURANCE:</strong> Resisting sanity loss</li>
                         </ul>
                         
-                        <h3>DICE ROLLS & STAT CHECKS</h3>
-                        <p>When you attempt something difficult, the GM may require a stat check:</p>
+                        <h3>DICE ROLLS</h3>
                         <ul>
-                            <li>If your stat meets the threshold → Auto-success (no roll needed)</li>
-                            <li>If below threshold → Roll D20 + your stat value</li>
-                            <li><strong>Success:</strong> +1 to that stat permanently, -1 sanity (growth has a cost)</li>
-                            <li><strong>Failure:</strong> Bigger sanity loss (-3 to -10), possible stat loss, narrative consequences</li>
+                            <li>Stat meets threshold → Auto-success</li>
+                            <li>Below threshold → Roll D20 + stat</li>
+                            <li><strong>Success:</strong> +1 stat, -1 sanity</li>
+                            <li><strong>Failure:</strong> Bigger sanity loss</li>
                         </ul>
                         
-                        <h3>SANITY SYSTEM - YOUR TRUE ENEMY</h3>
-                        <p><strong>Starting Sanity:</strong> 50 (40 for The Touched)</p>
-                        <p><strong>Every action costs sanity.</strong> Questions are free, but actions drain you.</p>
+                        <h3>SANITY</h3>
                         <ul>
-                            <li>Normal actions: -1 sanity</li>
-                            <li>Witnessing cosmic horror: -5 to -10 sanity</li>
-                            <li>Failed dice rolls: -3 to -10 sanity</li>
-                            <li>Sanity gains are VERY rare (safe spaces, helping others, rejecting knowledge)</li>
-                        </ul>
-                        <p><strong>At 0 sanity, the membrane claims you. Game over.</strong></p>
-                        <p>Note: Your sanity meter may be hidden until you investigate something wrong...</p>
-                        
-                        <h3>INVENTORY & ITEMS</h3>
-                        <p>Items come in two types:</p>
-                        <ul>
-                            <li><strong>Utility items:</strong> Keys, tools, notes (interact with world)</li>
-                            <li><strong>Stat-boosting items:</strong> Grant permanent bonuses while possessed. Keep for bonus OR use and lose it forever. Choose wisely.</li>
+                            <li>Questions: FREE</li>
+                            <li>Actions: -1 sanity minimum</li>
+                            <li>Cosmic horror: -5 to -10 sanity</li>
+                            <li>0 sanity = GAME OVER</li>
                         </ul>
                         
-                        <h3>COMPANIONS</h3>
-                        <ul>
-                            <li>Only 1 active companion at a time</li>
-                            <li>Their stats ADD to yours for all checks</li>
-                            <li>Switching requires sacrifice (kill, abandon, betray)</li>
-                            <li>Higher MORALITY unlocks more dialogue options</li>
-                            <li>Going solo is harder but possible</li>
-                        </ul>
-                        
-                        <h3>THE THREE PHASES</h3>
-                        <p><strong>Phase 1 - The Hook:</strong> Mundane normalcy. False security. Reality pesters you until you investigate.</p>
-                        <p><strong>Phase 2 - The Misdirection:</strong> You think you need to escape. Non-linear cosmic sandbox. Search for "the exit" that may not exist.</p>
-                        <p><strong>Phase 3 - The Truth:</strong> It was never about escape. Can you hold onto your sanity despite what you now know?</p>
-                        
-                        <h3>GAMEPLAY TIPS</h3>
-                        <ul>
-                            <li>Ask questions freely - get your bearings before acting</li>
-                            <li>Every choice has weight and consequences</li>
-                            <li>No hand-holding - you can fail</li>
-                            <li>There is no combat - sanity is your only enemy</li>
-                            <li>The game adapts to your chaos</li>
-                            <li>Trust nothing. Question everything.</li>
-                        </ul>
-                        
-                        <h3>REMEMBER</h3>
-                        <p>Not all doors should be opened. Not all patterns should be seen. Not all questions should be answered. But you will anyway. That's why you're here.</p>
-                        
-                        <h3>TECHNICAL NOTE</h3>
-                        <p style={{ fontSize: '11px', color: '#666' }}>This game uses Hugging Face's free AI inference API. The first action in each session may take 20-30 seconds as the AI model loads. Subsequent actions are faster. No API key or payment required!</p>
+                        <h3>NOTE</h3>
+                        <p style={{ fontSize: '11px', color: '#666' }}>First action may take 20-30 seconds as the AI wakes up. Subsequent responses are faster.</p>
                         
                         <button className="modal-close" onClick={onClose}>Close [ESC]</button>
                     </div>
@@ -775,28 +701,15 @@
             );
         }
 
-        // Character Creation Component
         function CharacterCreation({ onStart }) {
             const [playerName, setPlayerName] = useState('');
             const [selectedArchetype, setSelectedArchetype] = useState(null);
-
-            const handleStart = () => {
-                if (playerName && selectedArchetype) {
-                    onStart({
-                        name: playerName,
-                        archetype: selectedArchetype,
-                        ...ARCHETYPES[selectedArchetype]
-                    });
-                }
-            };
 
             return (
                 <div className="char-creation">
                     <h1>MEMBRANE</h1>
                     <div className="tagline">The barrier between universes is wearing thin</div>
-                    <div style={{ color: '#666', fontSize: '11px', marginBottom: '30px', fontStyle: 'italic' }}>
-                        Powered by free AI • First action may take 20-30 seconds as the GM awakens
-                    </div>
+                    <div className="note">Powered by free AI • First response takes ~20-30 seconds</div>
                     
                     <input
                         type="text"
@@ -837,7 +750,11 @@
                     <button
                         className="start-button"
                         disabled={!playerName || !selectedArchetype}
-                        onClick={handleStart}
+                        onClick={() => onStart({
+                            name: playerName,
+                            archetype: selectedArchetype,
+                            ...ARCHETYPES[selectedArchetype]
+                        })}
                     >
                         Enter the Membrane
                     </button>
@@ -845,7 +762,6 @@
             );
         }
 
-        // Dice Roll Component
         function DiceRoll({ roll, modifier, threshold, onComplete }) {
             useEffect(() => {
                 const timer = setTimeout(onComplete, 3000);
@@ -873,12 +789,11 @@
             );
         }
 
-        // Game Screen Component
         function GameScreen({ character }) {
             const [gameState, setGameState] = useState({
                 sanity: character.startingSanity,
                 maxSanity: 50,
-                sanityVisible: character.archetype === 'touched', // Touched starts with visible sanity
+                sanityVisible: character.archetype === 'touched',
                 stats: { ...character.stats },
                 inventory: [...character.items],
                 companion: null,
@@ -893,32 +808,25 @@
             const storyLogRef = useRef(null);
 
             useEffect(() => {
-                // Scroll to bottom of story log
                 if (storyLogRef.current) {
                     storyLogRef.current.scrollTop = storyLogRef.current.scrollHeight;
                 }
             }, [gameState.storyLog]);
 
             useEffect(() => {
-                // Initial game start narration
-                const initialNarration = getInitialNarration(character.archetype);
-                addToLog(initialNarration, 'narration');
-                
-                // Add helpful hint about questions vs actions
-                setTimeout(() => {
-                    addToLog('TIP: You can ask clarifying questions (where am I? what do I see?) at any time without penalty. Only ACTIONS (I investigate, I go there) cost sanity.', 'system-message');
-                }, 1000);
-            }, []);
-
-            const getInitialNarration = (archetype) => {
                 const narrations = {
                     touched: "You wake in darkness. Not the darkness of sleep, but something else. Something deeper. Your head throbs with memories that aren't yours—or are they? The membrane... you remember now. You sacrificed everything to seal it. But why are you still here?",
                     witness: "The manila folder on your desk contains three names, two dates, and one blurred photograph. The cult called themselves 'The Seekers.' They were looking for something. Three weeks ago, they stopped updating their blog. Two weeks ago, the compound went silent. One week ago, you decided to investigate. Now you're here.",
                     scientist: "The particle detector has been screaming for three hours straight. Impossible readings. Patterns that shouldn't exist in our universe. Your coffee has gone cold. Your hands are shaking. You've run the simulation seventeen times. Seventeen times, it shows the same thing: they're alive. And they're aware.",
                     survivor: "Mile marker 247. You've passed it four times in the last hour. The GPS shows you're still moving forward, but the exit signs tell a different story. Your truck's dashboard clock blinks 3:33 AM. It's been 3:33 AM for a while now. Time to pull over and figure out what the hell is going on."
                 };
-                return narrations[archetype] || "Something is wrong.";
-            };
+                
+                addToLog(narrations[character.archetype] || "Something is wrong.", 'narration');
+                
+                setTimeout(() => {
+                    addToLog('TIP: Ask questions (where am I? what do I see?) freely - only ACTIONS cost sanity.', 'system-message');
+                }, 1000);
+            }, []);
 
             const addToLog = (text, type = 'narration') => {
                 setGameState(prev => ({
@@ -949,8 +857,11 @@
                 }));
 
                 try {
-                    // Call Hugging Face Inference API (FREE - no key needed!)
-                    const response = await fetch("https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2", {
+                    // Hugging Face API through CORS proxy
+                    const apiUrl = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2";
+                    const corsProxy = "https://corsproxy.io/?";
+                    
+                    const response = await fetch(corsProxy + encodeURIComponent(apiUrl), {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",
@@ -958,7 +869,7 @@
                         body: JSON.stringify({
                             inputs: buildGMPrompt(action),
                             parameters: {
-                                max_new_tokens: 1000,
+                                max_new_tokens: 800,
                                 temperature: 0.8,
                                 top_p: 0.95,
                                 return_full_text: false
@@ -970,11 +881,10 @@
                         const errorText = await response.text();
                         console.error('API Error:', response.status, errorText);
                         
-                        // If model is loading, inform user
                         if (response.status === 503) {
-                            addToLog('The GM is awakening... (Model loading, please wait 20 seconds and try again)', 'system-message');
+                            addToLog('The GM is awakening... (Model loading, wait 20 seconds and try again)', 'system-message');
                         } else {
-                            addToLog(`The membrane rejects your attempt. [API Error: ${response.status}]`, 'system-message');
+                            addToLog(`The membrane rejects your attempt. [Error: ${response.status}]`, 'system-message');
                         }
                         setGameState(prev => ({ ...prev, isProcessing: false }));
                         return;
@@ -982,29 +892,25 @@
 
                     const data = await response.json();
                     
-                    // Hugging Face returns array with generated_text
                     let gmResponse;
                     if (Array.isArray(data) && data[0] && data[0].generated_text) {
                         gmResponse = data[0].generated_text;
                     } else if (data.generated_text) {
                         gmResponse = data.generated_text;
                     } else {
-                        console.error('Unexpected API response:', data);
-                        addToLog('The GM speaks in tongues you cannot understand. [Error: Invalid response format]', 'system-message');
+                        console.error('Unexpected response:', data);
+                        addToLog('The GM speaks in tongues. [Invalid response]', 'system-message');
                         setGameState(prev => ({ ...prev, isProcessing: false }));
                         return;
                     }
 
-                    // Parse GM response (expecting JSON)
                     let parsedResponse;
                     try {
-                        // Strip markdown code blocks if present
                         const cleanedResponse = gmResponse.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
                         parsedResponse = JSON.parse(cleanedResponse);
                     } catch (e) {
-                        console.error('JSON parsing error:', e);
-                        console.log('Raw response:', gmResponse);
-                        // If parsing fails, treat as plain narration
+                        console.error('Parse error:', e);
+                        console.log('Raw:', gmResponse);
                         parsedResponse = { 
                             narration: gmResponse,
                             isQuestion: false,
@@ -1015,58 +921,37 @@
                     processGMResponse(parsedResponse);
 
                 } catch (error) {
-                    console.error('Error calling Hugging Face API:', error);
-                    addToLog(`The membrane flickers. Reality stutters. [Error: ${error.message}]`, 'system-message');
+                    console.error('Error:', error);
+                    addToLog(`The membrane flickers. [Error: ${error.message}]`, 'system-message');
                     setGameState(prev => ({ ...prev, isProcessing: false }));
                 }
             };
 
             const buildGMPrompt = (action) => {
-                return `You are the Game Master for MEMBRANE, a cosmic horror D&D text-based campaign.
+                return `You are the Game Master for MEMBRANE, a cosmic horror D&D campaign.
 
-CRITICAL INSTRUCTIONS:
-- Respond ONLY with a valid JSON object
-- DO NOT include any text outside the JSON structure
-- DO NOT use markdown code blocks
-- Your entire response must be parseable JSON
+RESPOND ONLY WITH VALID JSON. NO OTHER TEXT.
 
-CURRENT GAME STATE:
+GAME STATE:
 Player: ${character.name}
 Archetype: ${character.name}
-Action Count: ${gameState.actionCount + 1}
-Sanity: ${gameState.sanity}/${gameState.maxSanity} ${gameState.sanityVisible ? '(VISIBLE)' : '(HIDDEN)'}
+Action: ${gameState.actionCount + 1}
+Sanity: ${gameState.sanity}/${gameState.maxSanity} ${gameState.sanityVisible ? '(visible)' : '(hidden)'}
 Stats: ${JSON.stringify(gameState.stats)}
 Inventory: ${JSON.stringify(gameState.inventory)}
-Companion: ${gameState.companion ? JSON.stringify(gameState.companion) : 'None'}
 
 PLAYER INPUT: "${action}"
 
-GAME DESIGN:
-${gameState.actionCount < 10 ? `
-PHASE 1 (Actions 1-10): Pure mundane normalcy. Player should feel false security. If they ignore wrongness, make it more insistent. When they investigate the wrongness (not just see it, but ACT on it), reveal sanity meter.
-` : gameState.sanity > 30 ? `
-PHASE 2: Cosmic sandbox exploration. Non-linear, surreal, dreamlike. Procedurally generate horror. Let them think they're finding "the exit". Introduce opportunities for companions, items, knowledge.
-` : `
-PHASE 3: The truth emerges. It's not about escape anymore. Can they hold onto sanity despite what they know?
-`}
+PHASE:
+${gameState.actionCount < 10 ? 'PHASE 1: Mundane normalcy. When player investigates wrongness, reveal sanity meter.' : gameState.sanity > 30 ? 'PHASE 2: Cosmic sandbox. Surreal, dreamlike. Let them think they can escape.' : 'PHASE 3: The truth. It was never about escape.'}
 
-IMPORTANT - QUESTIONS VS ACTIONS:
-- If player is asking a QUESTION (where am I? what do I see? can you describe? what's around me? etc.), answer it WITHOUT sanity cost, dice rolls, or consequences
-- Set "isQuestion": true and "sanityChange": 0 for questions
-- Provide detailed, atmospheric descriptions
-- Questions should not advance danger or require checks
-- Only ACTIONS (I do X, I go there, I touch it, I investigate) cost sanity and may require checks
+QUESTION vs ACTION:
+- If asking question (where/what/how/why/can you/describe) → isQuestion: true, sanityChange: 0
+- If doing action (I investigate/I go/I touch) → isQuestion: false, sanityChange: -1 or worse
 
-STAT CHECKS (for ACTIONS only):
-- If action requires a stat check, set "requiresDiceRoll": true
-- Set "stat" to one of: KNOWLEDGE, PERCEPTION, MORALITY, ENDURANCE
-- Set "threshold" between 8-20
-- Player's current stat value: if >= threshold, auto-success (no roll)
-- If < threshold, player must roll D20 + stat value
-
-RESPOND WITH THIS EXACT JSON STRUCTURE:
+RESPOND IN THIS JSON FORMAT:
 {
-  "narration": "Your atmospheric description of what happens",
+  "narration": "atmospheric description",
   "isQuestion": false,
   "requiresDiceRoll": false,
   "stat": null,
@@ -1077,46 +962,35 @@ RESPOND WITH THIS EXACT JSON STRUCTURE:
   "companionEvent": null,
   "revealSanityMeter": false,
   "systemMessage": null,
-  "gameOver": false,
-  "gameOverReason": null
+  "gameOver": false
 }
 
 RULES:
-- QUESTIONS have no cost (sanityChange: 0, isQuestion: true)
-- ACTIONS cost at least -1 sanity
-- Witnessing cosmic horror: -5 to -10 sanity
-- Success on rolls: +1 to that stat, -1 sanity
-- Failure on rolls: -3 to -10 sanity, possible stat loss, narrative consequences
-- Be atmospheric, moody, unsettling
-- No combat enemies - sanity is the only enemy
-- Make choices matter
-- Keep it dark and mysterious
-- If sanity reaches 0, set gameOver: true
-- Always answer questions about the environment, location, surroundings
-- Be a good DM - provide context when players ask for it
+- Questions cost 0 sanity
+- Actions cost -1 minimum
+- Cosmic horror costs -5 to -10
+- Stat checks need: stat (KNOWLEDGE/PERCEPTION/MORALITY/ENDURANCE), threshold (8-20)
+- Success: +1 stat, -1 sanity
+- Failure: -3 to -10 sanity
+- Be atmospheric, moody, dark
+- If sanity 0: gameOver: true
 
-REMEMBER: Your response must be ONLY a valid JSON object. Do not include any other text.`;
+ONLY RESPOND WITH JSON. NO OTHER TEXT.`;
             };
 
             const processGMResponse = (response) => {
-                // Add narration
-                if (response.narration) {
-                    addToLog(response.narration, 'narration');
-                }
+                addToLog(response.narration, 'narration');
 
-                // Handle dice roll requirement
                 if (response.requiresDiceRoll && response.stat && response.threshold) {
                     const statValue = gameState.stats[response.stat];
                     
-                    // Check if auto-success
                     if (statValue >= response.threshold) {
-                        addToLog(`AUTO-SUCCESS: Your ${response.stat} (${statValue}) meets the threshold (${response.threshold})`, 'dice-roll');
+                        addToLog(`AUTO-SUCCESS: ${response.stat} (${statValue}) ≥ ${response.threshold}`, 'dice-roll');
                         applySuccessOutcome(response.stat);
                         finalizeResponse(response);
                     } else {
-                        // Need to roll
                         performDiceRoll(response.stat, response.threshold, response);
-                        return; // Don't finalize yet, wait for dice animation
+                        return;
                     }
                 } else {
                     finalizeResponse(response);
@@ -1134,15 +1008,14 @@ REMEMBER: Your response must be ONLY a valid JSON object. Do not include any oth
                     diceRoll: { roll, modifier, threshold }
                 }));
 
-                // After dice animation, apply results
                 setTimeout(() => {
                     setGameState(prev => ({ ...prev, diceRoll: null }));
                     
                     if (success) {
-                        addToLog(`DICE ROLL: ${roll} + ${modifier} = ${total} vs ${threshold} - SUCCESS!`, 'dice-roll');
+                        addToLog(`ROLL: ${roll} + ${modifier} = ${total} vs ${threshold} - SUCCESS!`, 'dice-roll');
                         applySuccessOutcome(stat);
                     } else {
-                        addToLog(`DICE ROLL: ${roll} + ${modifier} = ${total} vs ${threshold} - FAILURE`, 'dice-roll');
+                        addToLog(`ROLL: ${roll} + ${modifier} = ${total} vs ${threshold} - FAILURE`, 'dice-roll');
                         applyFailureOutcome(response);
                     }
                     
@@ -1159,7 +1032,7 @@ REMEMBER: Your response must be ONLY a valid JSON object. Do not include any oth
                     },
                     sanity: Math.max(0, prev.sanity - 1)
                 }));
-                addToLog(`Your ${stat} increased by 1! (Sanity -1)`, 'system-message');
+                addToLog(`${stat} +1! (Sanity -1)`, 'system-message');
             };
 
             const applyFailureOutcome = (response) => {
@@ -1168,19 +1041,17 @@ REMEMBER: Your response must be ONLY a valid JSON object. Do not include any oth
                     ...prev,
                     sanity: Math.max(0, prev.sanity - sanityLoss)
                 }));
-                addToLog(`The failure costs you... (Sanity -${sanityLoss})`, 'system-message');
+                addToLog(`Failure costs you... (Sanity -${sanityLoss})`, 'system-message');
             };
 
             const finalizeResponse = (response) => {
                 setGameState(prev => {
                     let newState = { ...prev };
 
-                    // Apply sanity changes (only if not a question)
                     if (response.sanityChange && !response.isQuestion) {
                         newState.sanity = Math.max(0, Math.min(newState.maxSanity, newState.sanity + response.sanityChange));
                     }
 
-                    // Apply stat changes
                     if (response.statChanges && Object.keys(response.statChanges).length > 0) {
                         newState.stats = { ...newState.stats };
                         Object.entries(response.statChanges).forEach(([stat, change]) => {
@@ -1188,7 +1059,6 @@ REMEMBER: Your response must be ONLY a valid JSON object. Do not include any oth
                         });
                     }
 
-                    // Add new items
                     if (response.newItems && response.newItems.length > 0) {
                         newState.inventory = [...newState.inventory, ...response.newItems];
                         response.newItems.forEach(item => {
@@ -1197,15 +1067,11 @@ REMEMBER: Your response must be ONLY a valid JSON object. Do not include any oth
                         });
                     }
 
-                    // Handle companion events
-                    if (response.companionEvent) {
-                        if (response.companionEvent.type === 'recruit') {
-                            newState.companion = response.companionEvent.companion;
-                            addToLog(`${response.companionEvent.companion.name} joins you.`, 'system-message');
-                        }
+                    if (response.companionEvent && response.companionEvent.type === 'recruit') {
+                        newState.companion = response.companionEvent.companion;
+                        addToLog(`${response.companionEvent.companion.name} joins you.`, 'system-message');
                     }
 
-                    // Reveal sanity meter
                     if (response.revealSanityMeter && !newState.sanityVisible) {
                         newState.sanityVisible = true;
                         newState.sanity = 49;
@@ -1216,12 +1082,10 @@ REMEMBER: Your response must be ONLY a valid JSON object. Do not include any oth
                         }, 2000);
                     }
 
-                    // System messages
                     if (response.systemMessage) {
                         addToLog(response.systemMessage, 'system-message');
                     }
 
-                    // Game over check
                     if (newState.sanity <= 0 || response.gameOver) {
                         newState.gameOver = true;
                         const reason = response.gameOverReason || 'The membrane claims you. Your sanity has shattered.';
@@ -1245,7 +1109,6 @@ REMEMBER: Your response must be ONLY a valid JSON object. Do not include any oth
             return (
                 <>
                     <div className="game-screen">
-                        {/* Left Panel - Character Sheet */}
                         <div className="left-panel">
                             <div className="panel-title">Character</div>
                             <div className="char-name">{character.name}</div>
@@ -1261,9 +1124,7 @@ REMEMBER: Your response must be ONLY a valid JSON object. Do not include any oth
                             <div className="sanity-section">
                                 <div className="panel-title">Sanity</div>
                                 {!gameState.sanityVisible ? (
-                                    <div className="sanity-hidden">
-                                        [You feel... fine. Probably.]
-                                    </div>
+                                    <div className="sanity-hidden">[You feel... fine. Probably.]</div>
                                 ) : (
                                     <div className="sanity-display">
                                         <div className="sanity-numbers">
@@ -1286,15 +1147,11 @@ REMEMBER: Your response must be ONLY a valid JSON object. Do not include any oth
                                     <div className="panel-title">Companion</div>
                                     <div className="companion-info">
                                         <div className="companion-name">{gameState.companion.name}</div>
-                                        <div className="companion-stats">
-                                            Combined stats active
-                                        </div>
                                     </div>
                                 </div>
                             )}
                         </div>
 
-                        {/* Center Panel - Story Log & Input */}
                         <div className="center-panel">
                             <div className="story-log" ref={storyLogRef}>
                                 {gameState.storyLog.map((entry, index) => (
@@ -1313,7 +1170,7 @@ REMEMBER: Your response must be ONLY a valid JSON object. Do not include any oth
                                     value={inputValue}
                                     onChange={e => setInputValue(e.target.value)}
                                     onKeyPress={handleKeyPress}
-                                    placeholder="What do you do? (Ask questions freely - only actions cost sanity)"
+                                    placeholder="What do you do? (Questions are free)"
                                     disabled={gameState.isProcessing || gameState.gameOver}
                                 />
                                 <button
@@ -1326,34 +1183,23 @@ REMEMBER: Your response must be ONLY a valid JSON object. Do not include any oth
                             </div>
                         </div>
 
-                        {/* Right Panel - Inventory & Progress */}
                         <div className="right-panel">
                             <div className="panel-title">Inventory</div>
                             <ul className="inventory-list">
-                                {gameState.inventory.map((item, index) => {
-                                    const itemName = typeof item === 'string' ? item : item.name;
-                                    const itemStats = typeof item === 'object' ? item.stats : null;
-                                    return (
-                                        <li key={index} className="inventory-item">
-                                            <div className="item-name">{itemName}</div>
-                                            {itemStats && (
-                                                <div className="item-stats">{itemStats}</div>
-                                            )}
-                                        </li>
-                                    );
-                                })}
+                                {gameState.inventory.map((item, index) => (
+                                    <li key={index} className="inventory-item">
+                                        <div className="item-name">{typeof item === 'string' ? item : item.name}</div>
+                                    </li>
+                                ))}
                             </ul>
 
                             <div className="progress-section">
                                 <div className="panel-title">Progress</div>
-                                <div className="action-count">
-                                    Actions: {gameState.actionCount}
-                                </div>
+                                <div className="action-count">Actions: {gameState.actionCount}</div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Dice Roll Overlay */}
                     {gameState.diceRoll && (
                         <DiceRoll
                             roll={gameState.diceRoll.roll}
@@ -1366,16 +1212,10 @@ REMEMBER: Your response must be ONLY a valid JSON object. Do not include any oth
             );
         }
 
-        // Main App Component
         function App() {
             const [showHelp, setShowHelp] = useState(false);
             const [gameStarted, setGameStarted] = useState(false);
             const [character, setCharacter] = useState(null);
-
-            const handleStartGame = (characterData) => {
-                setCharacter(characterData);
-                setGameStarted(true);
-            };
 
             return (
                 <>
@@ -1386,7 +1226,10 @@ REMEMBER: Your response must be ONLY a valid JSON object. Do not include any oth
                     {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
 
                     {!gameStarted ? (
-                        <CharacterCreation onStart={handleStartGame} />
+                        <CharacterCreation onStart={(char) => {
+                            setCharacter(char);
+                            setGameStarted(true);
+                        }} />
                     ) : (
                         <GameScreen character={character} />
                     )}
@@ -1394,7 +1237,6 @@ REMEMBER: Your response must be ONLY a valid JSON object. Do not include any oth
             );
         }
 
-        // Render
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
