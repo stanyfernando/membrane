@@ -1,0 +1,1402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MEMBRANE</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #0a0a0a;
+            color: #c0c0c0;
+            overflow: hidden;
+        }
+
+        /* Static overlay effect */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" /></filter><rect width="200" height="200" filter="url(%23noise)" opacity="0.03"/></svg>');
+            pointer-events: none;
+            z-index: 9999;
+            animation: static 0.5s infinite;
+        }
+
+        @keyframes static {
+            0% { transform: translate(0, 0); }
+            50% { transform: translate(-1px, 1px); }
+            100% { transform: translate(0, 0); }
+        }
+
+        #root {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Help Button */
+        .help-button {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            background: #1a1a1a;
+            border: 1px solid #444;
+            color: #c0c0c0;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            z-index: 1000;
+            transition: all 0.2s;
+            letter-spacing: 1px;
+        }
+
+        .help-button:hover {
+            background: #2a2a2a;
+            border-color: #666;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .modal-content {
+            background: #0a0a0a;
+            border: 2px solid #444;
+            padding: 30px;
+            max-width: 700px;
+            max-height: 80vh;
+            overflow-y: auto;
+            line-height: 1.6;
+        }
+
+        .modal-content h2 {
+            color: #888;
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+
+        .modal-content h3 {
+            color: #666;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .modal-content p {
+            margin-bottom: 15px;
+        }
+
+        .modal-content ul {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        .modal-close {
+            background: #1a1a1a;
+            border: 1px solid #444;
+            color: #c0c0c0;
+            padding: 8px 20px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            margin-top: 20px;
+            display: block;
+            margin-left: auto;
+        }
+
+        .modal-close:hover {
+            background: #2a2a2a;
+        }
+
+        /* Character Creation */
+        .char-creation {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            padding: 40px;
+        }
+
+        .char-creation h1 {
+            font-size: 48px;
+            color: #444;
+            margin-bottom: 10px;
+            letter-spacing: 8px;
+        }
+
+        .char-creation .tagline {
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 14px;
+        }
+
+        .name-input {
+            background: #0a0a0a;
+            border: 1px solid #444;
+            color: #c0c0c0;
+            padding: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            width: 300px;
+            margin-bottom: 30px;
+        }
+
+        .name-input:focus {
+            outline: none;
+            border-color: #666;
+        }
+
+        .archetypes-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .archetype-card {
+            background: #0a0a0a;
+            border: 2px solid #333;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 350px;
+        }
+
+        .archetype-card:hover {
+            border-color: #555;
+        }
+
+        .archetype-card.selected {
+            border-color: #4a9eff;
+            background: #111;
+        }
+
+        .archetype-card h3 {
+            color: #888;
+            margin-bottom: 5px;
+            font-size: 18px;
+        }
+
+        .archetype-card .occupation {
+            color: #666;
+            font-size: 12px;
+            margin-bottom: 15px;
+        }
+
+        .archetype-card .stats {
+            margin-bottom: 15px;
+        }
+
+        .archetype-card .stat-line {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            font-size: 13px;
+        }
+
+        .archetype-card .strengths {
+            color: #4a9eff;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .archetype-card .weaknesses {
+            color: #ff6666;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+
+        .archetype-card .vibe {
+            color: #666;
+            font-size: 12px;
+            font-style: italic;
+        }
+
+        .archetype-card .warning {
+            color: #ff9966;
+            font-size: 12px;
+            margin-top: 10px;
+            padding: 8px;
+            border: 1px solid #442200;
+            background: #110800;
+        }
+
+        .start-button {
+            background: #1a1a1a;
+            border: 2px solid #444;
+            color: #c0c0c0;
+            padding: 15px 40px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        .start-button:hover:not(:disabled) {
+            background: #2a2a2a;
+            border-color: #666;
+        }
+
+        .start-button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* Game Screen */
+        .game-screen {
+            display: flex;
+            height: 100vh;
+            padding: 60px 20px 20px 20px;
+        }
+
+        .left-panel {
+            flex: 0 0 280px;
+            background: #0a0a0a;
+            border: 1px solid #333;
+            padding: 20px;
+            margin-right: 15px;
+            overflow-y: auto;
+        }
+
+        .center-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            margin-right: 15px;
+        }
+
+        .right-panel {
+            flex: 0 0 280px;
+            background: #0a0a0a;
+            border: 1px solid #333;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .panel-title {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Character Sheet */
+        .char-name {
+            color: #888;
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .char-archetype {
+            color: #666;
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+
+        .stat-display {
+            margin: 15px 0;
+        }
+
+        .stat-display .stat-name {
+            color: #888;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .stat-display .stat-value {
+            color: #c0c0c0;
+            font-size: 16px;
+        }
+
+        /* Sanity Bar */
+        .sanity-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #333;
+        }
+
+        .sanity-hidden {
+            color: #666;
+            font-size: 12px;
+            font-style: italic;
+        }
+
+        .sanity-display {
+            margin-bottom: 10px;
+        }
+
+        .sanity-numbers {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .sanity-bar {
+            width: 100%;
+            height: 20px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sanity-fill {
+            height: 100%;
+            transition: all 0.5s;
+        }
+
+        .sanity-fill.stable {
+            background: #4a9eff;
+        }
+
+        .sanity-fill.cracking {
+            background: #ff9966;
+        }
+
+        .sanity-fill.unstable {
+            background: #ff6666;
+        }
+
+        .sanity-fill.breaking {
+            background: #ff3333;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .sanity-status {
+            margin-top: 5px;
+            font-size: 12px;
+            color: #888;
+        }
+
+        /* Companion Section */
+        .companion-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #333;
+        }
+
+        .companion-info {
+            font-size: 13px;
+            color: #888;
+        }
+
+        .companion-name {
+            color: #4a9eff;
+            margin-bottom: 5px;
+        }
+
+        .companion-stats {
+            font-size: 11px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        /* Story Log */
+        .story-log {
+            flex: 1;
+            background: #0a0a0a;
+            border: 1px solid #333;
+            padding: 20px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+
+        .story-entry {
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .story-entry.player-action {
+            color: #4a9eff;
+            font-style: italic;
+        }
+
+        .story-entry.player-action::before {
+            content: '> ';
+        }
+
+        .story-entry.narration {
+            color: #c0c0c0;
+        }
+
+        .story-entry.dice-roll {
+            color: #4a9eff;
+            font-weight: bold;
+            padding: 10px;
+            border-left: 3px solid #4a9eff;
+            background: #0f0f0f;
+        }
+
+        .story-entry.system-message {
+            color: #ff9966;
+            font-weight: bold;
+            padding: 10px;
+            border: 1px solid #442200;
+            background: #110800;
+        }
+
+        /* Input Area */
+        .input-area {
+            background: #0a0a0a;
+            border: 1px solid #333;
+            padding: 15px;
+            display: flex;
+            align-items: flex-end;
+        }
+
+        .input-field {
+            flex: 1;
+            background: #0a0a0a;
+            border: 1px solid #444;
+            color: #c0c0c0;
+            padding: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 60px;
+            max-height: 200px;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #666;
+        }
+
+        .input-field:disabled {
+            opacity: 0.5;
+        }
+
+        .submit-button {
+            background: #1a1a1a;
+            border: 1px solid #444;
+            color: #c0c0c0;
+            padding: 12px 20px;
+            margin-left: 10px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .submit-button:hover:not(:disabled) {
+            background: #2a2a2a;
+            border-color: #666;
+        }
+
+        .submit-button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* Inventory */
+        .inventory-list {
+            list-style: none;
+        }
+
+        .inventory-item {
+            padding: 10px;
+            margin-bottom: 8px;
+            background: #0f0f0f;
+            border: 1px solid #333;
+            font-size: 13px;
+        }
+
+        .item-name {
+            color: #888;
+            margin-bottom: 5px;
+        }
+
+        .item-stats {
+            font-size: 11px;
+            color: #4a9eff;
+        }
+
+        /* Progress Tracker */
+        .progress-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #333;
+        }
+
+        .action-count {
+            font-size: 13px;
+            color: #666;
+        }
+
+        /* Dice Animation */
+        .dice-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .dice-container {
+            text-align: center;
+        }
+
+        .dice-visual {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: spin 0.5s ease-in-out;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .dice-result {
+            font-size: 24px;
+            color: #4a9eff;
+        }
+
+        .dice-breakdown {
+            font-size: 16px;
+            color: #888;
+            margin-top: 10px;
+        }
+
+        .loading {
+            color: #666;
+            font-style: italic;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // Archetype data
+        const ARCHETYPES = {
+            touched: {
+                name: "The Touched",
+                occupation: "Cult member who succeeded in making contact",
+                startingSanity: 40,
+                stats: {
+                    KNOWLEDGE: 14,
+                    PERCEPTION: 8,
+                    MORALITY: 7,
+                    ENDURANCE: 15
+                },
+                items: ["Strange journal", "Occult symbols reference", "Worn tarot deck"],
+                strengths: "High KNOWLEDGE and ENDURANCE, glimpsed beyond",
+                weaknesses: "Low starting sanity, damaged PERCEPTION and MORALITY",
+                vibe: "You've glimpsed what lies beyond",
+                warning: "⚠ Starts at 40/50 sanity - Hardest path"
+            },
+            witness: {
+                name: "The Witness",
+                occupation: "Journalist, investigator, documentarian",
+                startingSanity: 50,
+                stats: {
+                    KNOWLEDGE: 11,
+                    PERCEPTION: 15,
+                    MORALITY: 10,
+                    ENDURANCE: 8
+                },
+                items: ["Camera", "Voice recorder", "Press credentials"],
+                strengths: "Exceptional PERCEPTION for finding clues",
+                weaknesses: "Low ENDURANCE, sanity drains faster",
+                vibe: "You document the inexplicable"
+            },
+            scientist: {
+                name: "The Scientist",
+                occupation: "Physicist researching exotic particles",
+                startingSanity: 50,
+                stats: {
+                    KNOWLEDGE: 15,
+                    PERCEPTION: 11,
+                    MORALITY: 8,
+                    ENDURANCE: 10
+                },
+                items: ["Tablet computer", "Lab access card", "Scientific calculator"],
+                strengths: "Highest KNOWLEDGE for understanding cosmic truths",
+                weaknesses: "Low MORALITY, struggle with human connections",
+                vibe: "Logic fails where reality bends"
+            },
+            survivor: {
+                name: "The Survivor",
+                occupation: "Long-haul trucker, ex-military",
+                startingSanity: 50,
+                stats: {
+                    KNOWLEDGE: 8,
+                    PERCEPTION: 11,
+                    MORALITY: 14,
+                    ENDURANCE: 15
+                },
+                items: ["Multi-tool", "Flashlight", "Cigarettes and lighter"],
+                strengths: "High MORALITY and ENDURANCE, emotional resilience",
+                weaknesses: "Low KNOWLEDGE, slower to understand cosmic horror",
+                vibe: "You endure what others cannot"
+            }
+        };
+
+        // Help Modal Component
+        function HelpModal({ onClose }) {
+            useEffect(() => {
+                const handleEscape = (e) => {
+                    if (e.key === 'Escape') onClose();
+                };
+                window.addEventListener('keydown', handleEscape);
+                return () => window.removeEventListener('keydown', handleEscape);
+            }, [onClose]);
+
+            return (
+                <div className="modal-overlay" onClick={onClose}>
+                    <div className="modal-content" onClick={e => e.stopPropagation()}>
+                        <h2>MEMBRANE - HELP & ABOUT</h2>
+                        
+                        <h3>THE STORY</h3>
+                        <p>You exist in a world where something is fundamentally wrong. The Membrane - a barrier between our universe and the precursor universe that existed before the Big Bang - is wearing thin. Based on theoretical physics and dimensional theory, not magic or fantasy.</p>
+                        <p>Your goal isn't escape. It's survival. How long can you maintain your sanity while uncovering the truth? Every playthrough is unique, procedurally generated cosmic horror that adapts to your choices.</p>
+                        
+                        <h3>HOW TO PLAY</h3>
+                        <p><strong>Free Text Input:</strong> Type anything you want to do. No multiple choice. No limits. This is true D&D-style gameplay.</p>
+                        <p><strong>Ask Questions:</strong> You can ask clarifying questions at any time (Where am I? What do I see? Can you describe this?) without penalty. The GM will provide more detail.</p>
+                        <p><strong>Take Actions:</strong> When you DO something (investigate, touch, go somewhere), that's an action with consequences.</p>
+                        
+                        <h3>THE STATS</h3>
+                        <ul>
+                            <li><strong>KNOWLEDGE:</strong> Understanding the cosmic, deciphering symbols, studying patterns. Used for comprehending the incomprehensible.</li>
+                            <li><strong>PERCEPTION:</strong> Finding clues, noticing wrongness, discovering hidden things. Used for awareness and observation.</li>
+                            <li><strong>MORALITY:</strong> Empathy, human connection, ethical choices. Used for companion dialogues and maintaining humanity.</li>
+                            <li><strong>ENDURANCE:</strong> Resisting sanity loss, tolerating madness. Used for withstanding cosmic horror.</li>
+                        </ul>
+                        
+                        <h3>DICE ROLLS & STAT CHECKS</h3>
+                        <p>When you attempt something difficult, the GM may require a stat check:</p>
+                        <ul>
+                            <li>If your stat meets the threshold → Auto-success (no roll needed)</li>
+                            <li>If below threshold → Roll D20 + your stat value</li>
+                            <li><strong>Success:</strong> +1 to that stat permanently, -1 sanity (growth has a cost)</li>
+                            <li><strong>Failure:</strong> Bigger sanity loss (-3 to -10), possible stat loss, narrative consequences</li>
+                        </ul>
+                        
+                        <h3>SANITY SYSTEM - YOUR TRUE ENEMY</h3>
+                        <p><strong>Starting Sanity:</strong> 50 (40 for The Touched)</p>
+                        <p><strong>Every action costs sanity.</strong> Questions are free, but actions drain you.</p>
+                        <ul>
+                            <li>Normal actions: -1 sanity</li>
+                            <li>Witnessing cosmic horror: -5 to -10 sanity</li>
+                            <li>Failed dice rolls: -3 to -10 sanity</li>
+                            <li>Sanity gains are VERY rare (safe spaces, helping others, rejecting knowledge)</li>
+                        </ul>
+                        <p><strong>At 0 sanity, the membrane claims you. Game over.</strong></p>
+                        <p>Note: Your sanity meter may be hidden until you investigate something wrong...</p>
+                        
+                        <h3>INVENTORY & ITEMS</h3>
+                        <p>Items come in two types:</p>
+                        <ul>
+                            <li><strong>Utility items:</strong> Keys, tools, notes (interact with world)</li>
+                            <li><strong>Stat-boosting items:</strong> Grant permanent bonuses while possessed. Keep for bonus OR use and lose it forever. Choose wisely.</li>
+                        </ul>
+                        
+                        <h3>COMPANIONS</h3>
+                        <ul>
+                            <li>Only 1 active companion at a time</li>
+                            <li>Their stats ADD to yours for all checks</li>
+                            <li>Switching requires sacrifice (kill, abandon, betray)</li>
+                            <li>Higher MORALITY unlocks more dialogue options</li>
+                            <li>Going solo is harder but possible</li>
+                        </ul>
+                        
+                        <h3>THE THREE PHASES</h3>
+                        <p><strong>Phase 1 - The Hook:</strong> Mundane normalcy. False security. Reality pesters you until you investigate.</p>
+                        <p><strong>Phase 2 - The Misdirection:</strong> You think you need to escape. Non-linear cosmic sandbox. Search for "the exit" that may not exist.</p>
+                        <p><strong>Phase 3 - The Truth:</strong> It was never about escape. Can you hold onto your sanity despite what you now know?</p>
+                        
+                        <h3>GAMEPLAY TIPS</h3>
+                        <ul>
+                            <li>Ask questions freely - get your bearings before acting</li>
+                            <li>Every choice has weight and consequences</li>
+                            <li>No hand-holding - you can fail</li>
+                            <li>There is no combat - sanity is your only enemy</li>
+                            <li>The game adapts to your chaos</li>
+                            <li>Trust nothing. Question everything.</li>
+                        </ul>
+                        
+                        <h3>REMEMBER</h3>
+                        <p>Not all doors should be opened. Not all patterns should be seen. Not all questions should be answered. But you will anyway. That's why you're here.</p>
+                        
+                        <h3>TECHNICAL NOTE</h3>
+                        <p style={{ fontSize: '11px', color: '#666' }}>This game uses Hugging Face's free AI inference API. The first action in each session may take 20-30 seconds as the AI model loads. Subsequent actions are faster. No API key or payment required!</p>
+                        
+                        <button className="modal-close" onClick={onClose}>Close [ESC]</button>
+                    </div>
+                </div>
+            );
+        }
+
+        // Character Creation Component
+        function CharacterCreation({ onStart }) {
+            const [playerName, setPlayerName] = useState('');
+            const [selectedArchetype, setSelectedArchetype] = useState(null);
+
+            const handleStart = () => {
+                if (playerName && selectedArchetype) {
+                    onStart({
+                        name: playerName,
+                        archetype: selectedArchetype,
+                        ...ARCHETYPES[selectedArchetype]
+                    });
+                }
+            };
+
+            return (
+                <div className="char-creation">
+                    <h1>MEMBRANE</h1>
+                    <div className="tagline">The barrier between universes is wearing thin</div>
+                    <div style={{ color: '#666', fontSize: '11px', marginBottom: '30px', fontStyle: 'italic' }}>
+                        Powered by free AI • First action may take 20-30 seconds as the GM awakens
+                    </div>
+                    
+                    <input
+                        type="text"
+                        className="name-input"
+                        placeholder="Enter your name..."
+                        value={playerName}
+                        onChange={e => setPlayerName(e.target.value)}
+                    />
+                    
+                    <div className="archetypes-grid">
+                        {Object.entries(ARCHETYPES).map(([key, data]) => (
+                            <div
+                                key={key}
+                                className={`archetype-card ${selectedArchetype === key ? 'selected' : ''}`}
+                                onClick={() => setSelectedArchetype(key)}
+                            >
+                                <h3>{data.name}</h3>
+                                <div className="occupation">{data.occupation}</div>
+                                
+                                <div className="stats">
+                                    {Object.entries(data.stats).map(([stat, value]) => (
+                                        <div key={stat} className="stat-line">
+                                            <span>{stat}</span>
+                                            <span>{value}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                                
+                                <div className="strengths">✓ {data.strengths}</div>
+                                <div className="weaknesses">✗ {data.weaknesses}</div>
+                                <div className="vibe">{data.vibe}</div>
+                                
+                                {data.warning && <div className="warning">{data.warning}</div>}
+                            </div>
+                        ))}
+                    </div>
+                    
+                    <button
+                        className="start-button"
+                        disabled={!playerName || !selectedArchetype}
+                        onClick={handleStart}
+                    >
+                        Enter the Membrane
+                    </button>
+                </div>
+            );
+        }
+
+        // Dice Roll Component
+        function DiceRoll({ roll, modifier, threshold, onComplete }) {
+            useEffect(() => {
+                const timer = setTimeout(onComplete, 3000);
+                return () => clearTimeout(timer);
+            }, [onComplete]);
+
+            const total = roll + modifier;
+            const success = total >= threshold;
+
+            return (
+                <div className="dice-overlay">
+                    <div className="dice-container">
+                        <div className="dice-visual">🎲</div>
+                        <div className="dice-result" style={{ color: success ? '#4a9eff' : '#ff6666' }}>
+                            {success ? 'SUCCESS' : 'FAILURE'}
+                        </div>
+                        <div className="dice-breakdown">
+                            Roll: {roll} + Modifier: {modifier} = {total}
+                        </div>
+                        <div className="dice-breakdown">
+                            Threshold: {threshold}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Game Screen Component
+        function GameScreen({ character }) {
+            const [gameState, setGameState] = useState({
+                sanity: character.startingSanity,
+                maxSanity: 50,
+                sanityVisible: character.archetype === 'touched', // Touched starts with visible sanity
+                stats: { ...character.stats },
+                inventory: [...character.items],
+                companion: null,
+                actionCount: 0,
+                storyLog: [],
+                isProcessing: false,
+                diceRoll: null,
+                gameOver: false
+            });
+
+            const [inputValue, setInputValue] = useState('');
+            const storyLogRef = useRef(null);
+
+            useEffect(() => {
+                // Scroll to bottom of story log
+                if (storyLogRef.current) {
+                    storyLogRef.current.scrollTop = storyLogRef.current.scrollHeight;
+                }
+            }, [gameState.storyLog]);
+
+            useEffect(() => {
+                // Initial game start narration
+                const initialNarration = getInitialNarration(character.archetype);
+                addToLog(initialNarration, 'narration');
+                
+                // Add helpful hint about questions vs actions
+                setTimeout(() => {
+                    addToLog('TIP: You can ask clarifying questions (where am I? what do I see?) at any time without penalty. Only ACTIONS (I investigate, I go there) cost sanity.', 'system-message');
+                }, 1000);
+            }, []);
+
+            const getInitialNarration = (archetype) => {
+                const narrations = {
+                    touched: "You wake in darkness. Not the darkness of sleep, but something else. Something deeper. Your head throbs with memories that aren't yours—or are they? The membrane... you remember now. You sacrificed everything to seal it. But why are you still here?",
+                    witness: "The manila folder on your desk contains three names, two dates, and one blurred photograph. The cult called themselves 'The Seekers.' They were looking for something. Three weeks ago, they stopped updating their blog. Two weeks ago, the compound went silent. One week ago, you decided to investigate. Now you're here.",
+                    scientist: "The particle detector has been screaming for three hours straight. Impossible readings. Patterns that shouldn't exist in our universe. Your coffee has gone cold. Your hands are shaking. You've run the simulation seventeen times. Seventeen times, it shows the same thing: they're alive. And they're aware.",
+                    survivor: "Mile marker 247. You've passed it four times in the last hour. The GPS shows you're still moving forward, but the exit signs tell a different story. Your truck's dashboard clock blinks 3:33 AM. It's been 3:33 AM for a while now. Time to pull over and figure out what the hell is going on."
+                };
+                return narrations[archetype] || "Something is wrong.";
+            };
+
+            const addToLog = (text, type = 'narration') => {
+                setGameState(prev => ({
+                    ...prev,
+                    storyLog: [...prev.storyLog, { text, type, timestamp: Date.now() }]
+                }));
+            };
+
+            const getSanityStatus = () => {
+                const percentage = (gameState.sanity / gameState.maxSanity) * 100;
+                if (percentage > 60) return { text: 'STABLE', class: 'stable' };
+                if (percentage > 30) return { text: 'CRACKING', class: 'cracking' };
+                if (percentage > 15) return { text: 'UNSTABLE', class: 'unstable' };
+                return { text: 'BREAKING', class: 'breaking' };
+            };
+
+            const handleSubmit = async () => {
+                if (!inputValue.trim() || gameState.isProcessing || gameState.gameOver) return;
+
+                const action = inputValue.trim();
+                setInputValue('');
+                addToLog(action, 'player-action');
+
+                setGameState(prev => ({
+                    ...prev,
+                    isProcessing: true,
+                    actionCount: prev.actionCount + 1
+                }));
+
+                try {
+                    // Call Hugging Face Inference API (FREE - no key needed!)
+                    const response = await fetch("https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            inputs: buildGMPrompt(action),
+                            parameters: {
+                                max_new_tokens: 1000,
+                                temperature: 0.8,
+                                top_p: 0.95,
+                                return_full_text: false
+                            }
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error('API Error:', response.status, errorText);
+                        
+                        // If model is loading, inform user
+                        if (response.status === 503) {
+                            addToLog('The GM is awakening... (Model loading, please wait 20 seconds and try again)', 'system-message');
+                        } else {
+                            addToLog(`The membrane rejects your attempt. [API Error: ${response.status}]`, 'system-message');
+                        }
+                        setGameState(prev => ({ ...prev, isProcessing: false }));
+                        return;
+                    }
+
+                    const data = await response.json();
+                    
+                    // Hugging Face returns array with generated_text
+                    let gmResponse;
+                    if (Array.isArray(data) && data[0] && data[0].generated_text) {
+                        gmResponse = data[0].generated_text;
+                    } else if (data.generated_text) {
+                        gmResponse = data.generated_text;
+                    } else {
+                        console.error('Unexpected API response:', data);
+                        addToLog('The GM speaks in tongues you cannot understand. [Error: Invalid response format]', 'system-message');
+                        setGameState(prev => ({ ...prev, isProcessing: false }));
+                        return;
+                    }
+
+                    // Parse GM response (expecting JSON)
+                    let parsedResponse;
+                    try {
+                        // Strip markdown code blocks if present
+                        const cleanedResponse = gmResponse.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+                        parsedResponse = JSON.parse(cleanedResponse);
+                    } catch (e) {
+                        console.error('JSON parsing error:', e);
+                        console.log('Raw response:', gmResponse);
+                        // If parsing fails, treat as plain narration
+                        parsedResponse = { 
+                            narration: gmResponse,
+                            isQuestion: false,
+                            sanityChange: -1
+                        };
+                    }
+
+                    processGMResponse(parsedResponse);
+
+                } catch (error) {
+                    console.error('Error calling Hugging Face API:', error);
+                    addToLog(`The membrane flickers. Reality stutters. [Error: ${error.message}]`, 'system-message');
+                    setGameState(prev => ({ ...prev, isProcessing: false }));
+                }
+            };
+
+            const buildGMPrompt = (action) => {
+                return `You are the Game Master for MEMBRANE, a cosmic horror D&D text-based campaign.
+
+CRITICAL INSTRUCTIONS:
+- Respond ONLY with a valid JSON object
+- DO NOT include any text outside the JSON structure
+- DO NOT use markdown code blocks
+- Your entire response must be parseable JSON
+
+CURRENT GAME STATE:
+Player: ${character.name}
+Archetype: ${character.name}
+Action Count: ${gameState.actionCount + 1}
+Sanity: ${gameState.sanity}/${gameState.maxSanity} ${gameState.sanityVisible ? '(VISIBLE)' : '(HIDDEN)'}
+Stats: ${JSON.stringify(gameState.stats)}
+Inventory: ${JSON.stringify(gameState.inventory)}
+Companion: ${gameState.companion ? JSON.stringify(gameState.companion) : 'None'}
+
+PLAYER INPUT: "${action}"
+
+GAME DESIGN:
+${gameState.actionCount < 10 ? `
+PHASE 1 (Actions 1-10): Pure mundane normalcy. Player should feel false security. If they ignore wrongness, make it more insistent. When they investigate the wrongness (not just see it, but ACT on it), reveal sanity meter.
+` : gameState.sanity > 30 ? `
+PHASE 2: Cosmic sandbox exploration. Non-linear, surreal, dreamlike. Procedurally generate horror. Let them think they're finding "the exit". Introduce opportunities for companions, items, knowledge.
+` : `
+PHASE 3: The truth emerges. It's not about escape anymore. Can they hold onto sanity despite what they know?
+`}
+
+IMPORTANT - QUESTIONS VS ACTIONS:
+- If player is asking a QUESTION (where am I? what do I see? can you describe? what's around me? etc.), answer it WITHOUT sanity cost, dice rolls, or consequences
+- Set "isQuestion": true and "sanityChange": 0 for questions
+- Provide detailed, atmospheric descriptions
+- Questions should not advance danger or require checks
+- Only ACTIONS (I do X, I go there, I touch it, I investigate) cost sanity and may require checks
+
+STAT CHECKS (for ACTIONS only):
+- If action requires a stat check, set "requiresDiceRoll": true
+- Set "stat" to one of: KNOWLEDGE, PERCEPTION, MORALITY, ENDURANCE
+- Set "threshold" between 8-20
+- Player's current stat value: if >= threshold, auto-success (no roll)
+- If < threshold, player must roll D20 + stat value
+
+RESPOND WITH THIS EXACT JSON STRUCTURE:
+{
+  "narration": "Your atmospheric description of what happens",
+  "isQuestion": false,
+  "requiresDiceRoll": false,
+  "stat": null,
+  "threshold": null,
+  "sanityChange": -1,
+  "statChanges": {},
+  "newItems": [],
+  "companionEvent": null,
+  "revealSanityMeter": false,
+  "systemMessage": null,
+  "gameOver": false,
+  "gameOverReason": null
+}
+
+RULES:
+- QUESTIONS have no cost (sanityChange: 0, isQuestion: true)
+- ACTIONS cost at least -1 sanity
+- Witnessing cosmic horror: -5 to -10 sanity
+- Success on rolls: +1 to that stat, -1 sanity
+- Failure on rolls: -3 to -10 sanity, possible stat loss, narrative consequences
+- Be atmospheric, moody, unsettling
+- No combat enemies - sanity is the only enemy
+- Make choices matter
+- Keep it dark and mysterious
+- If sanity reaches 0, set gameOver: true
+- Always answer questions about the environment, location, surroundings
+- Be a good DM - provide context when players ask for it
+
+REMEMBER: Your response must be ONLY a valid JSON object. Do not include any other text.`;
+            };
+
+            const processGMResponse = (response) => {
+                // Add narration
+                if (response.narration) {
+                    addToLog(response.narration, 'narration');
+                }
+
+                // Handle dice roll requirement
+                if (response.requiresDiceRoll && response.stat && response.threshold) {
+                    const statValue = gameState.stats[response.stat];
+                    
+                    // Check if auto-success
+                    if (statValue >= response.threshold) {
+                        addToLog(`AUTO-SUCCESS: Your ${response.stat} (${statValue}) meets the threshold (${response.threshold})`, 'dice-roll');
+                        applySuccessOutcome(response.stat);
+                        finalizeResponse(response);
+                    } else {
+                        // Need to roll
+                        performDiceRoll(response.stat, response.threshold, response);
+                        return; // Don't finalize yet, wait for dice animation
+                    }
+                } else {
+                    finalizeResponse(response);
+                }
+            };
+
+            const performDiceRoll = (stat, threshold, response) => {
+                const roll = Math.floor(Math.random() * 20) + 1;
+                const modifier = gameState.stats[stat];
+                const total = roll + modifier;
+                const success = total >= threshold;
+
+                setGameState(prev => ({
+                    ...prev,
+                    diceRoll: { roll, modifier, threshold }
+                }));
+
+                // After dice animation, apply results
+                setTimeout(() => {
+                    setGameState(prev => ({ ...prev, diceRoll: null }));
+                    
+                    if (success) {
+                        addToLog(`DICE ROLL: ${roll} + ${modifier} = ${total} vs ${threshold} - SUCCESS!`, 'dice-roll');
+                        applySuccessOutcome(stat);
+                    } else {
+                        addToLog(`DICE ROLL: ${roll} + ${modifier} = ${total} vs ${threshold} - FAILURE`, 'dice-roll');
+                        applyFailureOutcome(response);
+                    }
+                    
+                    finalizeResponse(response);
+                }, 3000);
+            };
+
+            const applySuccessOutcome = (stat) => {
+                setGameState(prev => ({
+                    ...prev,
+                    stats: {
+                        ...prev.stats,
+                        [stat]: prev.stats[stat] + 1
+                    },
+                    sanity: Math.max(0, prev.sanity - 1)
+                }));
+                addToLog(`Your ${stat} increased by 1! (Sanity -1)`, 'system-message');
+            };
+
+            const applyFailureOutcome = (response) => {
+                const sanityLoss = Math.max(3, Math.abs(response.sanityChange));
+                setGameState(prev => ({
+                    ...prev,
+                    sanity: Math.max(0, prev.sanity - sanityLoss)
+                }));
+                addToLog(`The failure costs you... (Sanity -${sanityLoss})`, 'system-message');
+            };
+
+            const finalizeResponse = (response) => {
+                setGameState(prev => {
+                    let newState = { ...prev };
+
+                    // Apply sanity changes (only if not a question)
+                    if (response.sanityChange && !response.isQuestion) {
+                        newState.sanity = Math.max(0, Math.min(newState.maxSanity, newState.sanity + response.sanityChange));
+                    }
+
+                    // Apply stat changes
+                    if (response.statChanges && Object.keys(response.statChanges).length > 0) {
+                        newState.stats = { ...newState.stats };
+                        Object.entries(response.statChanges).forEach(([stat, change]) => {
+                            newState.stats[stat] = Math.max(1, newState.stats[stat] + change);
+                        });
+                    }
+
+                    // Add new items
+                    if (response.newItems && response.newItems.length > 0) {
+                        newState.inventory = [...newState.inventory, ...response.newItems];
+                        response.newItems.forEach(item => {
+                            const itemText = typeof item === 'string' ? item : item.name || 'Unknown item';
+                            addToLog(`Found: ${itemText}`, 'system-message');
+                        });
+                    }
+
+                    // Handle companion events
+                    if (response.companionEvent) {
+                        if (response.companionEvent.type === 'recruit') {
+                            newState.companion = response.companionEvent.companion;
+                            addToLog(`${response.companionEvent.companion.name} joins you.`, 'system-message');
+                        }
+                    }
+
+                    // Reveal sanity meter
+                    if (response.revealSanityMeter && !newState.sanityVisible) {
+                        newState.sanityVisible = true;
+                        newState.sanity = 49;
+                        addToLog('SANITY METER REVEALED: 49/50', 'system-message');
+                        setTimeout(() => {
+                            addToLog('Wait... it just went back to 50/50. You must have been tired.', 'system-message');
+                            setGameState(s => ({ ...s, sanity: 50 }));
+                        }, 2000);
+                    }
+
+                    // System messages
+                    if (response.systemMessage) {
+                        addToLog(response.systemMessage, 'system-message');
+                    }
+
+                    // Game over check
+                    if (newState.sanity <= 0 || response.gameOver) {
+                        newState.gameOver = true;
+                        const reason = response.gameOverReason || 'The membrane claims you. Your sanity has shattered.';
+                        setTimeout(() => addToLog(reason, 'system-message'), 500);
+                    }
+
+                    newState.isProcessing = false;
+                    return newState;
+                });
+            };
+
+            const handleKeyPress = (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSubmit();
+                }
+            };
+
+            const sanityStatus = getSanityStatus();
+
+            return (
+                <>
+                    <div className="game-screen">
+                        {/* Left Panel - Character Sheet */}
+                        <div className="left-panel">
+                            <div className="panel-title">Character</div>
+                            <div className="char-name">{character.name}</div>
+                            <div className="char-archetype">{character.name}</div>
+
+                            {Object.entries(gameState.stats).map(([stat, value]) => (
+                                <div key={stat} className="stat-display">
+                                    <div className="stat-name">{stat}</div>
+                                    <div className="stat-value">{value}</div>
+                                </div>
+                            ))}
+
+                            <div className="sanity-section">
+                                <div className="panel-title">Sanity</div>
+                                {!gameState.sanityVisible ? (
+                                    <div className="sanity-hidden">
+                                        [You feel... fine. Probably.]
+                                    </div>
+                                ) : (
+                                    <div className="sanity-display">
+                                        <div className="sanity-numbers">
+                                            <span>{gameState.sanity}</span>
+                                            <span>{gameState.maxSanity}</span>
+                                        </div>
+                                        <div className="sanity-bar">
+                                            <div
+                                                className={`sanity-fill ${sanityStatus.class}`}
+                                                style={{ width: `${(gameState.sanity / gameState.maxSanity) * 100}%` }}
+                                            />
+                                        </div>
+                                        <div className="sanity-status">{sanityStatus.text}</div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {gameState.companion && (
+                                <div className="companion-section">
+                                    <div className="panel-title">Companion</div>
+                                    <div className="companion-info">
+                                        <div className="companion-name">{gameState.companion.name}</div>
+                                        <div className="companion-stats">
+                                            Combined stats active
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Center Panel - Story Log & Input */}
+                        <div className="center-panel">
+                            <div className="story-log" ref={storyLogRef}>
+                                {gameState.storyLog.map((entry, index) => (
+                                    <div key={entry.timestamp + index} className={`story-entry ${entry.type}`}>
+                                        {entry.text}
+                                    </div>
+                                ))}
+                                {gameState.isProcessing && (
+                                    <div className="loading">The membrane shifts...</div>
+                                )}
+                            </div>
+
+                            <div className="input-area">
+                                <textarea
+                                    className="input-field"
+                                    value={inputValue}
+                                    onChange={e => setInputValue(e.target.value)}
+                                    onKeyPress={handleKeyPress}
+                                    placeholder="What do you do? (Ask questions freely - only actions cost sanity)"
+                                    disabled={gameState.isProcessing || gameState.gameOver}
+                                />
+                                <button
+                                    className="submit-button"
+                                    onClick={handleSubmit}
+                                    disabled={gameState.isProcessing || gameState.gameOver || !inputValue.trim()}
+                                >
+                                    {gameState.gameOver ? 'GAME OVER' : 'Submit'}
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Right Panel - Inventory & Progress */}
+                        <div className="right-panel">
+                            <div className="panel-title">Inventory</div>
+                            <ul className="inventory-list">
+                                {gameState.inventory.map((item, index) => {
+                                    const itemName = typeof item === 'string' ? item : item.name;
+                                    const itemStats = typeof item === 'object' ? item.stats : null;
+                                    return (
+                                        <li key={index} className="inventory-item">
+                                            <div className="item-name">{itemName}</div>
+                                            {itemStats && (
+                                                <div className="item-stats">{itemStats}</div>
+                                            )}
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+
+                            <div className="progress-section">
+                                <div className="panel-title">Progress</div>
+                                <div className="action-count">
+                                    Actions: {gameState.actionCount}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Dice Roll Overlay */}
+                    {gameState.diceRoll && (
+                        <DiceRoll
+                            roll={gameState.diceRoll.roll}
+                            modifier={gameState.diceRoll.modifier}
+                            threshold={gameState.diceRoll.threshold}
+                            onComplete={() => {}}
+                        />
+                    )}
+                </>
+            );
+        }
+
+        // Main App Component
+        function App() {
+            const [showHelp, setShowHelp] = useState(false);
+            const [gameStarted, setGameStarted] = useState(false);
+            const [character, setCharacter] = useState(null);
+
+            const handleStartGame = (characterData) => {
+                setCharacter(characterData);
+                setGameStarted(true);
+            };
+
+            return (
+                <>
+                    <button className="help-button" onClick={() => setShowHelp(true)}>
+                        HELP / ABOUT
+                    </button>
+
+                    {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
+
+                    {!gameStarted ? (
+                        <CharacterCreation onStart={handleStartGame} />
+                    ) : (
+                        <GameScreen character={character} />
+                    )}
+                </>
+            );
+        }
+
+        // Render
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
